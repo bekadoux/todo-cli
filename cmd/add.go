@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"encoding/csv"
-	"fmt"
-	"github.com/bekadoux/todo-cli/internal/todo"
-	"github.com/spf13/cobra"
-	"os"
-	"strconv"
 	"strings"
+
+	"github.com/spf13/cobra"
+
+	"github.com/bekadoux/todo-cli/internal/todo"
 )
 
 // addCmd represents the add command
@@ -23,22 +21,8 @@ var addCmd = &cobra.Command{
 			Done:        false,
 		}
 
-		saveToStore(newTask)
+		todo.SaveTaskToCSV(newTask)
 	},
-}
-
-func saveToStore(task todo.Task) {
-	records := [][]string{{"ID", "Description", "Done"},
-		{strconv.Itoa(int(task.ID)), task.Description, strconv.FormatBool(task.Done)}}
-	w := csv.NewWriter(os.Stdout)
-
-	for _, record := range records {
-		if err := w.Write(record); err != nil {
-			fmt.Println("error")
-		}
-	}
-
-	w.Flush()
 }
 
 func init() {
