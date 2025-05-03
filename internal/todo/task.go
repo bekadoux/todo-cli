@@ -8,6 +8,7 @@ type Task struct {
 	Done        bool
 }
 
+// TODO replace with something that doesn't depend on manual editing maybe?
 func (t Task) getCSVData() []string {
 	return []string{
 		strconv.Itoa(t.ID),
@@ -16,7 +17,8 @@ func (t Task) getCSVData() []string {
 	}
 }
 
-// Just for simplicity sake
+// TODO replace with something that doesn't depend on manual editing maybe?
+// Just for simplicity sake, maybe temporary
 func getHeader() []string {
 	return []string{"ID", "Description", "Done"}
 }
