@@ -9,7 +9,7 @@ type Task struct {
 }
 
 // TODO replace with something that doesn't depend on manual editing maybe?
-func (t Task) getCSVData() []string {
+func (t Task) ToStringSlice() []string {
 	return []string{
 		strconv.Itoa(t.ID),
 		t.Description,
@@ -19,6 +19,6 @@ func (t Task) getCSVData() []string {
 
 // TODO replace with something that doesn't depend on manual editing maybe?
 // Just for simplicity sake, maybe temporary
-func getHeader() []string {
+func GetHeader() []string {
 	return []string{"ID", "Description", "Done"}
 }

@@ -28,7 +28,7 @@ func createOnNotExist(path string) error {
 		defer file.Close()
 
 		writer := csv.NewWriter(file)
-		if err := writer.Write(getHeader()); err != nil {
+		if err := writer.Write(GetHeader()); err != nil {
 			return fmt.Errorf("error writing header: %w", err)
 		}
 		writer.Flush()
@@ -40,24 +40,20 @@ func SaveTaskToCSV(task Task) error {
 	path := DefaultSavePath
 	err := createOnNotExist(path)
 	if err != nil {
-		fmt.Println("failed to prepare file:", err)
-		return err
+		return fmt.Errorf("failed to prepare file: %w", err)
 	}
 	file, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		fmt.Println("failed to open file:", err)
-		return err
+		return fmt.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close()
 
 	writer := csv.NewWriter(file)
-	if err := writer.Write(task.getCSVData()); err != nil {
-		fmt.Println("failed writing to writer:", err)
-		return err
+	if err := writer.Write(task.ToStringSlice()); err != nil {
+		return fmt.Errorf("failed writing to writer: %w", err)
 	}
 	writer.Flush()
 	if err := writer.Error(); err != nil {
-		fmt.Println("failed writing to file: %w", err)
 		return fmt.Errorf("error writing task to file: %w", err)
 	}
 	return nil

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -24,7 +25,7 @@ var addCmd = &cobra.Command{
 
 		const maxDescriptionLength = 100
 		if len(description) > maxDescriptionLength {
-			fmt.Printf("task description too long (max %d characters, got %d)\n", maxDescriptionLength, len(args))
+			fmt.Printf("task description too long (max %d characters, got %d)\n", maxDescriptionLength, len(description))
 			return
 		}
 
@@ -34,7 +35,10 @@ var addCmd = &cobra.Command{
 			Done:        false,
 		}
 
-		todo.SaveTaskToCSV(newTask)
+		if err := todo.SaveTaskToCSV(newTask); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to save task: %v\n", err)
+			os.Exit(1)
+		}
 	},
 }
 
