@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	//"github.com/bekadoux/todo-cli/internal/todo"
 	"os"
 	"strings"
 	"text/tabwriter"
@@ -19,16 +18,30 @@ var listCmd = &cobra.Command{
 	Long:  `List all tasks`,
 	Run: func(cmd *cobra.Command, args []string) {
 		w := tabwriter.NewWriter(os.Stdout, 10, 4, 10, ' ', 0)
-		tasks, err := todo.LoadTasksFromCSV(todo.DefaultSavePath)
-		if err != nil {
+		manager := todo.NewTaskManager()
+
+		loadPath := todo.DefaultSavePath
+		if err := todo.LoadTasksFromCSV(manager, loadPath); err != nil {
+			if err == os.ErrNotExist {
+				fmt.Printf(`
+It looks like there are no tasks yet, and the file %q does not exist.
+
+- To add your first task, use: todo-cli add
+- To see all available commands, run: todo-cli help
+- If you specified a custom file path, double-check that the path is correct.
+
+If you believe the file should exist but it's missing, ensure it wasn't accidentally deleted or moved.
+`, loadPath)
+				return
+			}
 			fmt.Printf("error loading tasks from CSV: %v\n", err)
 			os.Exit(1)
 		}
 
 		fmt.Fprintln(w, strings.Join(todo.GetHeader(), "\t"))
-		for _, task := range tasks {
-			fmt.Fprintln(w, strings.Join(task.ToStringSlice(), "\t"))
-		}
+		manager.ForEachTask(func(t *todo.Task) {
+			fmt.Fprintln(w, strings.Join(t.ToStringSlice(), "\t"))
+		})
 
 		w.Flush()
 	},

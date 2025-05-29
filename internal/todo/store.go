@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	// "strings"
 )
 
 var DefaultSavePath string
@@ -36,7 +35,7 @@ func createOnNotExist(path string) error {
 	return nil
 }
 
-func SaveTaskToCSV(task Task) error {
+func SaveNewTasksToCSV(manager *TaskManager) error {
 	path := DefaultSavePath
 	err := createOnNotExist(path)
 	if err != nil {
@@ -49,8 +48,13 @@ func SaveTaskToCSV(task Task) error {
 	defer file.Close()
 
 	writer := csv.NewWriter(file)
-	if err := writer.Write(task.ToStringSlice()); err != nil {
-		return fmt.Errorf("failed writing to writer: %w", err)
+	if err := manager.ForEachNewTask(func(t *Task) error {
+		if err := writer.Write(t.ToStringSlice()); err != nil {
+			return fmt.Errorf("failed writing to writer: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error saving task: %w", err)
 	}
 	writer.Flush()
 	if err := writer.Error(); err != nil {
@@ -59,10 +63,13 @@ func SaveTaskToCSV(task Task) error {
 	return nil
 }
 
-func LoadTasksFromCSV(path string) ([]Task, error) {
+func LoadTasksFromCSV(manager *TaskManager, path string) error {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("error opening %s: %w", path, err)
+		if os.IsNotExist(err) {
+			return os.ErrNotExist // special case a user-friendly message
+		}
+		return fmt.Errorf("error opening %s: %w", path, err)
 	}
 	defer file.Close()
 	reader := csv.NewReader(file)
@@ -70,38 +77,32 @@ func LoadTasksFromCSV(path string) ([]Task, error) {
 	// Skip header
 	_, err = reader.Read()
 	if err != nil {
-		return nil, fmt.Errorf("error reading CSV from %s: %w", path, err)
+		return fmt.Errorf("error reading CSV from %s: %w", path, err)
 	}
 	csvContent, err := reader.ReadAll()
 	if err != nil {
-		return nil, fmt.Errorf("error reading CSV from %s: %w", path, err)
+		return fmt.Errorf("error reading CSV from %s: %w", path, err)
 	}
 
-	var tasks []Task
 	for i, line := range csvContent {
-		const expectedColumnCount = 3
-		if len(line) < expectedColumnCount {
-			return nil, fmt.Errorf("malformed line %d: expected %d columns, got %d", i+2, expectedColumnCount, len(line))
+		if len(line) < CSVTaskColumnCount {
+			return fmt.Errorf("malformed line %d: expected %d columns, got %d", i+2, CSVTaskColumnCount, len(line))
 		}
 
 		id, err := strconv.Atoi(line[0])
 		if err != nil {
-			return nil, fmt.Errorf("invalid ID at line %d: %w", i+2, err)
+			return fmt.Errorf("invalid ID at line %d: %w", i+2, err)
 		}
 
 		description := line[1]
 
 		done, err := strconv.ParseBool(line[2])
 		if err != nil {
-			return nil, fmt.Errorf("invalid Done value at line %d: %w", i+2, err)
+			return fmt.Errorf("invalid Done value at line %d: %w", i+2, err)
 		}
 
-		tasks = append(tasks, Task{
-			ID:          id,
-			Description: description,
-			Done:        done,
-		})
+		manager.AddTaskFromStorage(id, description, done)
 	}
 
-	return tasks, nil
+	return nil
 }

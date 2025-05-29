@@ -3,21 +3,25 @@ package todo
 import "strconv"
 
 type Task struct {
-	ID          int
-	Description string
-	Done        bool
+	id          int
+	description string
+	done        bool
 }
 
-// TODO replace with something that doesn't depend on manual editing maybe?
-func (t Task) ToStringSlice() []string {
+func (t *Task) ID() int             { return t.id }
+func (t *Task) Description() string { return t.description }
+func (t *Task) Done() bool          { return t.done }
+
+const CSVTaskColumnCount = 3
+
+func (t *Task) ToStringSlice() []string {
 	return []string{
-		strconv.Itoa(t.ID),
-		t.Description,
-		strconv.FormatBool(t.Done),
+		strconv.Itoa(t.id),
+		t.description,
+		strconv.FormatBool(t.done),
 	}
 }
 
-// TODO replace with something that doesn't depend on manual editing maybe?
 // Just for simplicity sake, maybe temporary
 func GetHeader() []string {
 	return []string{"ID", "Description", "Done"}

@@ -29,14 +29,12 @@ var addCmd = &cobra.Command{
 			return
 		}
 
-		var newTask todo.Task = todo.Task{
-			ID:          0,
-			Description: description,
-			Done:        false,
-		}
+		manager := todo.NewTaskManager()
+		todo.LoadTasksFromCSV(manager, todo.DefaultSavePath)
+		manager.NewTask(description, false)
 
-		if err := todo.SaveTaskToCSV(newTask); err != nil {
-			fmt.Fprintf(os.Stderr, "failed to save task: %v\n", err)
+		if err := todo.SaveNewTasksToCSV(manager); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to save new tasks: %v\n", err)
 			os.Exit(1)
 		}
 	},
